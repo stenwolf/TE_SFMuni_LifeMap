@@ -4,6 +4,7 @@ export const FETCH_VEHICLE_LOCATIONS = 'FETCH_VEHICLE_LOCATIONS'
 export const SET_VEHICLE_LOCATIONS = 'SET_VEHICLE_LOCATIONS'
 export const FETCH_ALL_VEHICLE_LOCATIONS = 'FETCH_ALL_VEHICLE_LOCATIONS'
 export const SET_ALL_VEHICLE_LOCATIONS = 'SET_ALL_VEHICLE_LOCATIONS'
+export const SET_SELECTED_ROUTES = 'SET_SELECTED_ROUTES'
 
 export const fetchRouteList = () => ({
   type: FETCH_ROUTE_LIST
@@ -21,3 +22,9 @@ export const fetchVehicleLocations = (tags, lastTime) =>{
 export const fetchAllVehicleLocations = () => ({
   type: FETCH_ALL_VEHICLE_LOCATIONS
 })
+
+export const setSelectedRoutes = (routeTag) => ({
+  type: SET_SELECTED_ROUTES,
+  routeTag
+})
+

@@ -5,6 +5,8 @@ import { SF_MAP_URL, SFMaps } from '../../config'
 
 
 function *fetchMap() {
+  //iterate through all maps and append each of them 
+  //then pass the new object to the reducer to distribute back to component to render map
   let mapList = SFMaps.map(map => axios.get(`${SF_MAP_URL}${map.type}.json`))
   const res = yield call(axios.all, mapList)
   let maps = {}

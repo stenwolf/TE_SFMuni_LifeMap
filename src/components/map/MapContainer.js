@@ -14,34 +14,31 @@ class MapContainer extends React.Component {
     this.state={
       width: window.innerWidth,
       height: window.innerHeight,
-      lastRequestTime: 0,
-      selectedRoute: []
+      lastRequestTime: 0
     }
   }
 
   componentDidMount(){
+    //fetch all data to render
     this.props.fetchRouteList()
     this.props.fetchMap()  
     this.props.fetchAllVehicleLocations()
-    //let timer  = setInterval(this.getVehicleLocations.bind(this), config.SYNC_INTERVAL)
+    //update every 15 seconds
+    setInterval(this.getVehicleLocations.bind(this), config.SYNC_INTERVAL)
   }
 
   getVehicleLocations(){
-    let routeList = []
-    if(this.state.selectedRoute.length === 0 && this.props.routeList){
-      routeList = this.props.routeList.reduce((result, {tag}) => {
-        result.push(tag)
-        return result
-      }, [])
+    //if no route is selected then fetch all, otherwise fetch selected data
+    if(!this.props.muniSelectedRoutes || !this.props.muniSelectedRoutes.length){
+      this.props.fetchAllVehicleLocations()
     }
-    else if(this.state.selectedRoute.length){
-      routeList = this.state.selectedRoute
+    else{
+      this.props.fetchVehicleLocations(this.props.muniSelectedRoutes)
     }
-
-    this.props.fetchVehicleLocations(routeList, 9832749)
   }
 
   projection() {
+    //zoom in and center to SF
     return geoMercator()
       .scale(config.SCALE)
       .center(config.SF_COORDINATES)
@@ -49,6 +46,7 @@ class MapContainer extends React.Component {
   }
 
   drawMap(){
+    //draw all geo json files from config, in this case, 4 files
     return config.SFMaps.map( mapDetail => {
       const { type, stroke, fill, strokeWidth } = mapDetail
       return (
@@ -65,13 +63,15 @@ class MapContainer extends React.Component {
   }
 
   drawVehicle(){
+    //draw all vehicles from the redux store
     const { locations } = this.props
     let coordinates
-    if(locations && locations.vehicle.length){
-      return locations.vehicle.map(location => {        
+    if(locations.length){
+      return locations.map(location => {        
         coordinates = [location.lon, location.lat]
         return (
           <DrawVehicle 
+            key={location.id}
             projection={() => this.projection()}
             coordinates={coordinates}
             r={8}
@@ -85,7 +85,7 @@ class MapContainer extends React.Component {
 
   render(){    
     if(this.props.map === null) {
-      return(<h1>Loading</h1>)
+      return(<h1>Loading Map</h1>)
     }
     else {
       return(
@@ -101,7 +101,8 @@ class MapContainer extends React.Component {
 const mapStateToProps = state => ({
   routeList: state.muniRoutes,
   locations: state.muniLocations,
-  map: state.map
+  map: state.map,
+  muniSelectedRoutes: state.muniSelectedRoutes
 })
 
 const mapDispatchToProps = dispatch => ({

@@ -16,21 +16,21 @@ function *watchFetchRouteList() {
 }
 
 function *fetchVehicleLocations(action){
-  const { tags, lastTime } = action
-  console.log('saga', tags, lastTime)
-
-
-  let routeList = tags.map(tag => axios.get(`${NEXT_BUS_URL}?command=vehicleLocations&a=sf-muni&r=${tag}&t=${lastTime}`))
+  //fetch multiple routes with multiple requests, then reduce all results to 1 array to give to reducer
+  const { tags } = action
+  let routeList = tags.map(tag => axios.get(`${NEXT_BUS_URL}?command=vehicleLocations&a=sf-muni&r=${tag}`))
   const res = yield call(axios.all, routeList)
-  console.log(res)
-  // let maps = {}
-  // yield all (res.map((map, i) => (maps[SFMaps[i].type] = map.data.features)))
-  
+  let selectedLocations = res.reduce((accumulator, current) => {
+    if(current.data && current.data.vehicle)
+      return accumulator.concat(current.data.vehicle)
+    else
+      return accumulator
+  }, [])
+  yield put({
+    type: actions.SET_ALL_VEHICLE_LOCATIONS,
+    locations: selectedLocations
+  })
 
-  // axios.get(`${NEXTBUS_URL}?command=vehicleLocations&a=sf-muni&r=${tag}&t=${lastTime}`)
-  // .then(response => {
-  //   console.log('here ', response)
-  // })
 }
 
 function *watchFetchVehicleLocations(){
@@ -41,17 +41,8 @@ function *fetchAllVehicleLocations(){
   const res = yield call(axios.get, `${NEXT_BUS_URL}?command=vehicleLocations&a=sf-muni`)
   yield put({
     type: actions.SET_ALL_VEHICLE_LOCATIONS,
-    locations: res.data
+    locations: res.data.vehicle
   })
-  // let mapList = SFMaps.map(map => axios.get(`${SF_MAP_URL}${map.type}.json`))
-  // const res = yield call(axios.all, mapList)
-  // let maps = {}
-  // yield all (res.map((map, i) => (maps[SFMaps[i].type] = map.data.features)))
-  
-  // yield put({
-  //   type: actions.SET_MAP,
-  //   maps
-  // })
 }
 
 function *watchFetchAllVehicleLocations(){
